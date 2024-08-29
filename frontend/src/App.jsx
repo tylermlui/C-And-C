@@ -5,6 +5,7 @@ import LivePage from './pages/LivePage';
 import CartPage from './pages/CartPage';
 import ContactPage from './pages/ContactPage';
 import HomePage from './pages/HomePage';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/live" element={<LivePage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
 
