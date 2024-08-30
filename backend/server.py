@@ -1,9 +1,10 @@
-from flask import Flask, jsonify
+from flask import Flask, request
 from flask_cors import CORS
 import base64
 import requests
 from dotenv import load_dotenv
 import os
+import logging
 
 app = Flask(__name__)
 CORS(app)  
@@ -62,3 +63,17 @@ def products():
     prod_list = image_class(encode_image(image_path))
     product_list = {"name": prod_list, "price": 200, "image": "image file"}
     return product_list
+
+@app.route("/addproduct", methods=["GET", "POST"])
+def addproduct():
+    res = request.get_json()
+    name = res['name']
+    description = res['description']
+    weight = res['weight']
+    price = res['price']
+    image = res['image']
+    app.logger.warning(f'name:{name} description:{description} weight:{weight} price:{price} image:{image}')
+
+    obj =  {name: "here"}
+    return obj
+
