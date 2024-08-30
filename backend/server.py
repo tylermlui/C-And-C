@@ -66,14 +66,24 @@ def products():
 
 @app.route("/addproduct", methods=["GET", "POST"])
 def addproduct():
-    res = request.get_json()
-    name = res['name']
-    description = res['description']
-    weight = res['weight']
-    price = res['price']
-    image = res['image']
+    name = request.form.get('name')
+    description = request.form.get('description')
+    weight = request.form.get('weight')
+    price = request.form.get('price')
+    image = request.files.get('image') 
+
     app.logger.warning(f'name:{name} description:{description} weight:{weight} price:{price} image:{image}')
+    return "product added"
 
-    obj =  {name: "here"}
-    return obj
-
+@app.route("/generate", methods=["GET", "POST"])
+def generate():
+    image = request.files.get('image')
+    try:
+        image_string = base64.b64encode(image.read()).decode('utf-8') #encoding image
+        gen_string = image_class(image_string) #calling GPT for image for image
+        app.logger.warning(gen_string)
+        return gen_string
+    except AttributeError:
+       return "error with encoding"
+    except:
+       return "error with GPT request"
