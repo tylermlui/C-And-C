@@ -30,7 +30,13 @@ def image_class(encoded_image):
         "content": [
             {
             "type": "text",
-            "text": "Give this jewelry a name and description and the text with the grams and size as a json object. If either of these is not present return None in the appropriate field"
+            "text": '''Give this jewelry a name and description and the text with the grams and size(int), and mm, only json. If either of these is not present return null in the appropriate field"
+                "name": "name",
+                "description": "description",
+                "grams": float,
+                "mm": float
+                "size":float
+                '''
             },
             {
             "type": "image_url",
@@ -81,7 +87,7 @@ def generate():
     try:
         image_string = base64.b64encode(image.read()).decode('utf-8') #encoding image
         gen_string = image_class(image_string) #calling GPT for image for image
-        app.logger.warning(gen_string)
+        app.logger.warning(gen_string) 
         return gen_string
     except AttributeError:
        return "error with encoding"
