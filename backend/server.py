@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 import b2sdk.v2 as b2
 from urls import list_objects_browsable_url, get_b2_resource, upload_file, product_list
-from database import insert_data, fetch_data
+from database import insert_product_db, fetch_all_db_products
 from io import BytesIO
 
 app = Flask(__name__)
@@ -77,51 +77,80 @@ def products():
 
 @app.route("/productlist", methods=["GET", "POST", "OPTIONS"])
 def list():
-    products = fetch_data()
+    products = fetch_all_db_products()
     app.logger.warning(f'name:{products}')
     return products
 
 
 @app.route("/addproduct", methods=["GET", "POST"])
 def addproduct():
-    
-    name = request.form.get('name')
-    description = request.form.get('description')
-    weight = request.form.get('weight')
-    price = request.form.get('price')
-    image = request.files.get('image')
-    size = request.form.get('size')
-    mm = request.form.get('mm')
-    app.logger.warning(f'name:{name} description:{description} weight:{weight} price:{price} image:{image.filename}')
+    try:
+        # Getting all fields from POST request
+        name = request.form.get('name')
+        description = request.form.get('description')
+        weight = request.form.get('weight')
+        price = request.form.get('price')
+        image = request.files.get('image')
+        size = request.form.get('size')
+        mm = request.form.get('mm')
+        app.logger.warning(f'name:{name} description:{description} weight:{weight} price:{price} image:{image.filename}')
+        
+        # Read image data
+        image_data = BytesIO(image.read())
+        
+        try:
+            # Establishing a connection to B2
+            b2_connection = get_b2_resource(endpoint, application_key_id, application_key)
+            response = upload_file(bucket_name, image_data, b2_connection, image.filename) # Uploading file to bucket
+            app.logger.warning(f'File upload response: {response}')
+        except Exception as e:
+            app.logger.error(f"Error uploading file to B2: {e}")
+            return f"Failed to upload image: {e}", 500
+        
+        try:
+            # Getting the bucket
+            bucket = b2_connection.Bucket(bucket_name)
+            all_bucket_objects = bucket.objects.all()
+            
+            # Creating a list of products with links and last modified dates
+            product_list = []
+            for obj in all_bucket_objects:
+                url = f"{endpoint}/{bucket.name}/{obj.key}"
+                product_list.append({
+                    'link': url,
+                    'last_modified': obj.last_modified
+                })
+            
+            # Finding the most recent image link
+            most_recent_image_link = max(product_list, key=lambda x: x['last_modified'])
+            adjusted_image_link = most_recent_image_link['link'].replace(' ', '+')
+            app.logger.warning(f'Most recent image link: {adjusted_image_link}')
+        except Exception as e:
+            app.logger.error(f"Error retrieving or processing bucket objects: {e}")
+            return f"Failed to retrieve image link: {e}", 500
+        
+        # Creating product details for the database
+        product_details = {
+            "name": name,
+            "description": description,
+            "weight": weight,
+            "price": price,
+            "size": size,
+            "mm": mm,
+            "image": adjusted_image_link
+        }
 
-    image_data = BytesIO(image.read())
-    
-    # Example function call to upload file
-    b2_rw = get_b2_resource(endpoint, application_key_id, application_key)
-    response = upload_file(bucket_name, image_data, b2_rw, image.filename)
-    app.logger.warning(f'------------------------products:{response}')
+        try:
+            insert_product_db(product_details)  # Insert product details into the database
+            app.logger.warning(f'Product inserted into database: {adjusted_image_link}')
+        except Exception as e:
+            app.logger.error(f"Error inserting product into database: {e}")
+            return f"Failed to insert product into database: {e}", 500
 
-    image_link = product_list(endpoint, application_key_id,application_key,bucket_name)[-1].replace(' ','+')
-    app.logger.warning(f'products:{image_link}')
-
-    form = {
-       "name": name, 
-       "description": description, 
-       "weight":weight, 
-       "price":price, 
-       "size":size, 
-       "mm":mm,
-       "image":image_link
-       }
-
-    insert_data(form)
-    # Log basic info (excluding file contents for security)
-    app.logger.warning(f'name:{image_link}')
-    
-    # Convert image to BytesIO
-
-
-    return response
+        return response
+    except Exception as e:
+        app.logger.error(f"General error in addproduct: {e}")
+        return f"Failed to process the request: {e}", 500
 
 @app.route("/generate", methods=["GET", "POST"])
 def generate():

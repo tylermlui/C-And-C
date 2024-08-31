@@ -5,11 +5,11 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-def fetch_data():
+def fetch_all_db_products():
     response = supabase.table("products").select("*").execute()
     return response.data
 
-def insert_data(products):
+def insert_product_db(products):
     def convert_empty_to_none(value):
         if value == '' or value is None:
             return None

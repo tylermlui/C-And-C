@@ -43,12 +43,12 @@ def list_objects_browsable_url(bucket, endpoint, b2):
 
 def get_b2_resource(endpoint, key_id, application_key):
     b2 = boto3.resource(service_name='s3',
-                        endpoint_url=endpoint,                # Backblaze endpoint
-                        aws_access_key_id=key_id,              # Backblaze key_id
-                        aws_secret_access_key=application_key, # Backblaze application_key
-                        config = Config(
-                            signature_version='s3v4',
-                    ))
+        endpoint_url=endpoint,                # Backblaze endpoint
+        aws_access_key_id=key_id,              # Backblaze key_id
+        aws_secret_access_key=application_key, # Backblaze application_key
+        config = Config(
+            signature_version='s3v4',
+    ))
     return b2
 
 def get_b2_client(endpoint, key_id, application_key):
