@@ -80,8 +80,8 @@ function AddItem() {
             setImage(file);
             setUrl(fileUrl);
     
-            console.log('File:', url);
-            console.log('File URL:', image);
+            console.log('File:', file);
+            console.log('File URL:', fileUrl);
         } else {
             console.log('No file selected');
         }
