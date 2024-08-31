@@ -1,6 +1,21 @@
 import boto3 
 from botocore.exceptions import ClientError
 from botocore.config import Config
+import b2sdk.v2 as b2
+import urllib.parse
+
+def product_list(endpoint, application_key_id,application_key, bucket_name):
+    info = b2.InMemoryAccountInfo()
+    b2_api = b2.B2Api(info)
+
+
+    b2_api.authorize_account("production", application_key_id, application_key)
+    bucket = b2_api.get_bucket_by_name(bucket_name)
+    
+    b2_resource = get_b2_resource(endpoint, application_key_id, application_key)
+
+    browsable_urls = list_objects_browsable_url(bucket_name, endpoint, b2_resource)
+    return browsable_urls
 
 def list_object_keys(bucket, b2):
     try:
@@ -48,6 +63,7 @@ def upload_file(bucket, file, b2, b2path=None):
     if remote_path is None:
         raise ValueError("remote_path must be specified for upload_file")
     try:
+        
         extra_args = {'ContentType': 'image/jpeg'}        #Ensures content type is image/jpeg
         response = b2.Bucket(bucket).upload_fileobj(file, remote_path, ExtraArgs=extra_args)
     except ClientError as ce:

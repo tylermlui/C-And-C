@@ -22,9 +22,10 @@ function AddItem() {
         const formData = new FormData();
         formData.append('name', form.name);
         formData.append('description', form.description);
-        formData.append('grams', form.weight?.toString() || '');
+        formData.append('weight', form.weight?.toString() || '');
         formData.append('price', form.price?.toString() || '');
         formData.append('mm', form.mm?.toString() || '');
+        formData.append('size', form.size?.toString() || '');
         formData.append('image', image || '');  
     
         fetch("http://localhost:5000/addproduct", {
@@ -63,7 +64,7 @@ function AddItem() {
             setFormData({
                 name : json_string.name,
                 description : json_string.description,
-                weight : json_string.grams,
+                weight : json_string.weight,
                 price : json_string.price,
                 mm : json_string.mm,
                 size: json_string.size
